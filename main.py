@@ -335,7 +335,8 @@ def reklama_matndan_olib_tashlash(text):
     return re.sub(r'\s+', ' ', t).strip()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
-FAST_GROUP_ID = int(os.getenv('FAST_GROUP_ID', '-5270167448'))
+_fast_group_raw = os.getenv('FAST_GROUP_ID', '')
+FAST_GROUP_ID = int(_fast_group_raw) if _fast_group_raw and _fast_group_raw.lstrip('-').isdigit() else None
 
 async def openai_check_passenger(text):
     """OpenAI orqali xabar yo'lovchimi yoki yo'qligini tekshirish"""
@@ -519,7 +520,7 @@ def create_message_handler(acc: AccountConfig):
             return
         
         # Tez guruhga yuborish - barcha filtrlardan OLDIN
-        if len(text_content) <= 80 and not event.message.sticker:
+        if FAST_GROUP_ID and len(text_content) <= 80 and not event.message.sticker:
             _has_emoji = bool(re.search(u"[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F1E0-\U0001F1FF\U00002702-\U000027B0\U000024C2-\U0001F251]", text_content))
             if not _has_emoji:
                 try:
