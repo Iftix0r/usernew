@@ -3482,6 +3482,36 @@ async def main():
         cwd=os.getcwd()
     )
     print("📱 Userbot ham ishga tushdi")
+    # Bot ishga tushdi xabari
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT group_id FROM order_groups')
+            order_groups = [row[0] for row in cursor.fetchall()]
+        if not order_groups:
+            order_groups = [ORDER_GROUP_ID]
+        for gid in order_groups:
+            try:
+                await bot.send_message(
+                    chat_id=gid,
+                    text=(
+                        "✅ <b>Bot ishga tushdi!</b>\n\n"
+                        "🚕 <b>TEST ZAKAZ</b>\n"
+                        "👤 <a href='tg://user?id=123456789'>Test Mijoz</a>\n"
+                        "💬 <b><i>Toshkentga ketish kerak, 2 kishi bor</i></b>\n"
+                        "📞 +998901234567"
+                    ),
+                    parse_mode='HTML',
+                    reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                        [{"text": "📞 +998901234567", "url": "https://onmap.uz/tel/+998901234567"}],
+                        [{"text": "🚫 Bloklash", "url": f"https://t.me/{(await bot.get_me()).username}?start=block_123456789"}]
+                    ])
+                )
+            except Exception as e:
+                logger.error(f"Ishga tushdi xabari {gid}: {e}")
+    except Exception as e:
+        logger.error(f"Ishga tushdi xabari: {e}")
+
     try:
         await dp.start_polling(bot)
     finally:
