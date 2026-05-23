@@ -3504,6 +3504,7 @@ async def main():
                     parse_mode='HTML',
                     reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                         [{"text": "📞 +998901234567", "url": "https://onmap.uz/tel/+998901234567"}],
+                        [{"text": "💬 Admin yozish", "url": f"https://t.me/{(await bot.get_me()).username}?start=write_123456789"}],
                         [{"text": "🚫 Bloklash", "url": f"https://t.me/{(await bot.get_me()).username}?start=block_123456789"}]
                     ])
                 )
