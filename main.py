@@ -935,8 +935,64 @@ def create_chat_action_handler(acc: AccountConfig):
     return _unblock, _groups, _help
 
 
+def create_new_member_handler(acc: AccountConfig):
+    async def new_member_handler(event):
+        try:
+            chat = await event.get_chat()
+            chat_title = getattr(chat, 'title', 'Guruh')
+            chat_id = event.chat_id
+
+            for user in event.users:
+                if getattr(user, 'bot', False):
+                    continue
+
+                user_id = user.id
+                user_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or 'Foydalanuvchi'
+                username = getattr(user, 'username', None)
+
+                # Profil havolasi
+                if username:
+                    profile_url = f"https://t.me/{username}"
+                    name_link = f"<a href='{profile_url}'>{user_name}</a>"
+                else:
+                    profile_url = f"tg://user?id={user_id}"
+                    name_link = f"<a href='{profile_url}'>{user_name}</a>"
+
+                text = f"👋 <b>Yangi a'zo qo'shildi</b>\n\n👤 {name_link}\n🫂 {chat_title}"
+                if username:
+                    text += f"\n🤙 @{username}"
+
+                buttons = [[{"text": f"👤 {user_name}", "url": profile_url}]]
+
+                with get_main_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT group_id FROM order_groups ORDER BY group_id')
+                    order_groups = [row[0] for row in cursor.fetchall()]
+                if not order_groups and acc.order_group_id:
+                    order_groups = [acc.order_group_id]
+
+                async with aiohttp.ClientSession() as session:
+                    for gid in order_groups:
+                        await session.post(
+                            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                            json={
+                                "chat_id": gid,
+                                "text": text,
+                                "parse_mode": "HTML",
+                                "disable_web_page_preview": True,
+                                "reply_markup": {"inline_keyboard": buttons}
+                            }
+                        )
+                logger.info(f"Yangi a'zo: {user_name} -> {chat_title}")
+        except Exception as e:
+            logger.error(f"Yangi a'zo handler: {e}")
+
+    return new_member_handler
+
+
 def register_account_handlers(c, acc):
     c.add_event_handler(create_message_handler(acc), events.NewMessage)
+    c.add_event_handler(create_new_member_handler(acc), events.ChatAction)
 
 
 def register_account_commands(c, acc):
