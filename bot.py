@@ -490,6 +490,37 @@ async def start_handler(message: types.Message):
             logger.error(f"Start deep link error: {e}")
             return
 
+    # Admin yozish (deep link orqali) - userbot orqali mijozga xabar yuborish
+    if len(args) > 1 and args[1].startswith('write_'):
+        if not is_admin(message.from_user.id):
+            await message.answer("❌ Bu funksiya faqat adminlar uchun!", parse_mode='HTML')
+            return
+        try:
+            target_user_id = int(args[1].replace('write_', ''))
+            from shared_accounts import send_private_to_user
+            greeting = (
+                "Assalomu alaykum hurmatli mijoz! 🌟\n\n"
+                "Sizga taksi kerakmi? 🚕\n"
+                "Bizning haydovchilarimiz har doim xizmatda!\n\n"
+                "Qayerga borishingizni ayting, tez orada haydovchi topib beramiz. 😊"
+            )
+            ok = await send_private_to_user(target_user_id, greeting)
+            if ok:
+                await message.answer(
+                    f"✅ <b>Xabar yuborildi!</b>\n\n"
+                    f"👤 Foydalanuvchi: <a href='tg://user?id={target_user_id}'>{target_user_id}</a>",
+                    parse_mode='HTML'
+                )
+            else:
+                await message.answer(
+                    "❌ Xabar yuborib bo'lmadi.\n"
+                    "Userbot ulanmagan yoki foydalanuvchi botni bloklagan bo'lishi mumkin."
+                )
+        except Exception as e:
+            logger.error(f"Write deep link: {e}")
+            await message.answer(f"❌ Xatolik: {e}")
+        return
+
     # Bloklash (deep link orqali)
     if len(args) > 1 and args[1].startswith('block_'):
         if not is_admin(message.from_user.id):

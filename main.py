@@ -962,7 +962,11 @@ def create_new_member_handler(acc: AccountConfig):
                 if username:
                     text += f"\n🤙 @{username}"
 
-                buttons = [[{"text": f"👤 {user_name}", "url": profile_url}]]
+                write_link = f"https://t.me/{acc.bot_username}?start=write_{user_id}"
+                buttons = [
+                    [{"text": f"👤 {user_name}", "url": profile_url}],
+                    [{"text": "💬 Admin yozish", "url": write_link}]
+                ]
 
                 with get_main_db() as conn:
                     cursor = conn.cursor()

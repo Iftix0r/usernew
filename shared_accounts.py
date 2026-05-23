@@ -46,3 +46,15 @@ async def send_to_any_available(order_group_id, caption, sender=None, keyboard=N
             continue
     return False, None
 
+async def send_private_to_user(user_id, text):
+    """Userbot orqali foydalanuvchiga shaxsiy xabar yuborish"""
+    for client, acc in all_accounts:
+        try:
+            await client.send_message(entity=user_id, message=text)
+            return True
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Akkaunt #{acc.profile_id} user {user_id} ga yubora olmadi: {e}")
+            continue
+    return False
+
