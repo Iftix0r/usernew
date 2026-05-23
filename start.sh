@@ -1,26 +1,30 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PID_FILE="$SCRIPT_DIR/bot.pid"
-LOG_FILE="$SCRIPT_DIR/nohup.log"
-
-if [ -f "$PID_FILE" ]; then
-    PID=$(cat "$PID_FILE")
-    if kill -0 "$PID" 2>/dev/null; then
-        echo "Bot allaqachon ishlamoqda (PID: $PID)"
-        exit 1
-    fi
-fi
+MAIN_PID="$SCRIPT_DIR/main.pid"
+BOT_PID="$SCRIPT_DIR/bot.pid"
 
 cd "$SCRIPT_DIR"
 
-# Virtual env mavjud bo'lsa ishlatish
-if [ -f "venv/bin/activate" ]; then
-    source venv/bin/activate
-fi
+[ -f "venv/bin/activate" ] && source venv/bin/activate
 
-nohup python -u main.py >> "$LOG_FILE" 2>&1 &
-echo $! > "$PID_FILE"
+start_process() {
+    local script=$1
+    local pidfile=$2
+    local logfile=$3
 
-echo "Bot ishga tushdi (PID: $(cat $PID_FILE))"
-echo "Loglar: $LOG_FILE"
+    if [ -f "$pidfile" ]; then
+        local pid=$(cat "$pidfile")
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "$script allaqachon ishlamoqda (PID: $pid)"
+            return
+        fi
+    fi
+
+    nohup python -u "$SCRIPT_DIR/$script" >> "$logfile" 2>&1 &
+    echo $! > "$pidfile"
+    echo "$script ishga tushdi (PID: $(cat $pidfile))"
+}
+
+start_process "main.py" "$MAIN_PID" "$SCRIPT_DIR/nohup.log"
+start_process "bot.py"  "$BOT_PID"  "$SCRIPT_DIR/bot_nohup.log"
